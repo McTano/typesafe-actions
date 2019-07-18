@@ -31,6 +31,9 @@ type CreateReducerChainApi<
         TRootAction['type'],
         (state: TState, action: TRootAction) => TState
       >;
+      /**  We can remove this line if we want a compilation error for a defaultHandler
+       *  when there are no actions left to handle */
+      defaultHandler: CreateReducerDefaultHandler<TState, never, TRootAction>;
     }
   : Reducer<TState, TRootAction> & {
       handlers: Record<
@@ -42,7 +45,25 @@ type CreateReducerChainApi<
         TNextNotHandledAction,
         TRootAction
       >;
+      defaultHandler: CreateReducerDefaultHandler<
+        TState,
+        TNextNotHandledAction,
+        TRootAction
+      >;
     };
+
+type CreateReducerDefaultHandler<
+  TState,
+  TPrevNotHandledAction extends Action,
+  TRootAction extends Action
+> = <TAction extends TPrevNotHandledAction>(
+  reducer: (state: TState, action: TAction) => TState
+) => Reducer<TState, TRootAction> & {
+  handlers: Record<
+    TRootAction['type'],
+    (state: TState, action: TRootAction) => TState
+  >;
+};
 
 type GetAction<
   TAction extends Action,
