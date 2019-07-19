@@ -99,6 +99,12 @@ export function createReducer<TState, TRootAction extends Action = RootAction>(
         );
       }
       return reducer(state, action);
+    } else if (handlers.hasOwnProperty('_default')) {
+      const _default = handlers._default;
+      if (typeof _default !== 'function') {
+        throw Error(`Default handler is not a valid reducer`);
+      }
+      return _default(state, action);
     } else {
       return state;
     }
@@ -126,9 +132,21 @@ export function createReducer<TState, TRootAction extends Action = RootAction>(
     });
   }) as CreateReducerChainApi<TState, TRootAction, TRootAction>;
 
+  const defaultHandler: CreateReducerDefaultHandler<
+    TState,
+    TRootAction,
+    TRootAction
+  > = reducer => {
+    return createReducer<TState, TRootAction>(initialState, {
+      ...handlers,
+      _default: reducer,
+    });
+  };
+
   const chainApi = Object.assign(rootReducer, {
     handlers: { ...handlers },
     handleAction,
+    defaultHandler,
   } as const);
 
   return chainApi;
